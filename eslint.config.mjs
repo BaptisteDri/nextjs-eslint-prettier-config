@@ -1,29 +1,105 @@
-import { defineConfig } from "eslint/config";
-import unusedImports from "eslint-plugin-unused-imports";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import js from "@eslint/js";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextVitals from "eslint-config-next/core-web-vitals"
+import nextTs from "eslint-config-next/typescript"
+import eslintConfigPrettier from "eslint-config-prettier"
+import perfectionist from "eslint-plugin-perfectionist"
+import eslintPluginPrettier from "eslint-plugin-prettier/recommended"
+import reactPlugin from "eslint-plugin-react"
+import unusedImports from "eslint-plugin-unused-imports"
+import { defineConfig, globalIgnores } from "eslint/config"
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
-});
+const eslintConfig = defineConfig([
+	...nextVitals,
+	...nextTs,
+	eslintConfigPrettier,
+	eslintPluginPrettier,
+	{
+		rules: {
+			"react-hooks/set-state-in-effect": "off",
+		},
+	},
+	{
+		plugins: {
+			react: reactPlugin,
+		},
+		rules: {
+			"react/jsx-curly-brace-presence": [
+				"error",
+				{ children: "ignore", props: "never" },
+			],
+		},
+		settings: {
+			react: {
+				version: "detect",
+			},
+		},
+	},
+	{
+		plugins: {
+			"unused-imports": unusedImports,
+		},
+		rules: {
+			"unused-imports/no-unused-imports": "error",
+			"unused-imports/no-unused-vars": [
+				"error",
+				{
+					args: "after-used",
+					argsIgnorePattern: "^_",
+					vars: "all",
+					varsIgnorePattern: "^_",
+				},
+			],
+		},
+	},
+	{
+		plugins: {
+			perfectionist,
+		},
+		rules: {
+			"perfectionist/sort-imports": [
+				"warn",
+				{
+					groups: [
+						"builtin",
+						"external",
+						"internal",
+						["parent", "sibling", "index"],
+					],
+					internalPattern: ["^@/.*"],
+					newlinesBetween: 1,
+					order: "asc",
+					type: "natural",
+				},
+			],
+			"perfectionist/sort-jsx-props": [
+				"warn",
+				{
+					order: "asc",
+					type: "natural",
+				},
+			],
+			"perfectionist/sort-named-imports": [
+				"warn",
+				{
+					order: "asc",
+					type: "natural",
+				},
+			],
+			"perfectionist/sort-objects": [
+				"warn",
+				{
+					order: "asc",
+					type: "natural",
+				},
+			],
+		},
+	},
+	globalIgnores([
+		".next/**",
+		"out/**",
+		"build/**",
+		"next-env.d.ts",
+		"public/**",
+	]),
+])
 
-export default defineConfig([{
-    extends: compat.extends("next/core-web-vitals"),
-
-    plugins: {
-        "unused-imports": unusedImports,
-    },
-
-    rules: {
-        "react/no-unescaped-entities": "off",
-        "@next/next/no-img-element": "off",
-        "no-console": "error",
-        "unused-imports/no-unused-imports": "error",
-    },
-}]);
+export default eslintConfig
